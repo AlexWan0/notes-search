@@ -164,3 +164,4 @@ indexdir
 
 # other data
 data/
+config.py
