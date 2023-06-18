@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Notes Search</title>
+
+        <link rel="stylesheet" href="https://unpkg.com/chota@latest">
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+        <style>
+            .input_col {
+                margin: 2em 20em 1em 20em;
+            }
+
+            .response_col {
+                margin: 0em 20em 0em 20em;
+            }
+            
+            #response {
+                font-size: 1.3rem;
+                font-weight: bold;
+            }
+
+            .sub-item {
+                font-weight: normal;
+                margin-left: 10px;
+                list-style-type: disc;
+            }
+
+            textarea {
+                font-size: 1.3rem;
+            }
+
+            .arxiv-title {
+                text-decoration: underline;
+            }
+
+            .arxiv-authors {
+                font-style: italic;
+            }
+
+            .item {
+                margin-bottom: 20px;
+            }
+
+            ul {
+                padding-inline-start: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="row">
+            <div class="col input_col">
+                <textarea id="content" class="is-center" autofocus></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6 response_col">
+                <ol id="response">
+                </ol>
+            </div>
+        </div>
+        <script type="text/javascript" charset="utf-8">
+            var socket = io.connect('http://localhost:5000');
+            socket.on('connect', function() {
+                console.log('Connected!');
+            });
+
+            var textarea = document.getElementById('content');
+            textarea.addEventListener('input', function() {
+                socket.emit('message', textarea.value);
+            });
+
+            function parseTabList(str) {
+                var lines = str.split('\n');
+                var html = "";
+                var level = 0;
+                lines.forEach(function(line) {
+                    var itemLevel = (line.match(/\t/g) || []).length;
+                    var item = line.replace(/\t/g, '');
+                    while (itemLevel > level) {
+                        html += "<ul class='sub-item'>";
+                        level++;
+                    }
+                    while (itemLevel < level) {
+                        html += "</ul>";
+                        level--;
+                    }
+                    html += "<li class='tab-list-item'>" + item + "</li>";
+                });
+                while (level-- > 0) {
+                    html += "</ul>";
+                }
+                return html;
+            }
+
+            function convertToHyperlink(text) {
+                var urlRegex = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+                return text.replace(urlRegex, function(url) {
+                    return '<a href="' + url + '" target="_blank">' + url + '</a>';
+                });
+            }
+
+            socket.on('response', function(msg) {
+                var data = JSON.parse(msg);
+                $("#response").empty();
+                data.forEach(function(itemList) {
+                    var li = $("<li class='item'></li>");
+                    itemList.forEach(function(item, index) {
+                        if(item != null) {
+                            if (index === 0) {
+                                li.append(convertToHyperlink(item));
+                            } else if (index == 1) {
+                                li.append("<ul class='sub-item'><li class='arxiv-title'>" + item + "</li></ul>");
+                            } else if (index == 2) {
+                                li.append("<ul class='sub-item'><li class='arxiv-authors'>" + item + "</li></ul>");
+                            } else if (index == 3) {
+                                li.append(parseTabList(item));
+                            }
+                        }
+                    });
+                    $("#response").append(li);
+                });
+            });
+        </script>
+    </body>
+</html>
