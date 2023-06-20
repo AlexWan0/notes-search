@@ -165,3 +165,6 @@ indexdir
 # other data
 data/
 config.py
+
+.DS_Store
+
