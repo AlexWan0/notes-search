@@ -11,16 +11,21 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
         <style>
+            :root {
+                --font-family-sans: "Consolas", "Lucida Console", monospace;
+                --color-primary: #3684d1;
+            }
+
             .input_col {
                 margin: 2em 20em 1em 20em;
             }
 
             .response_col {
-                margin: 0em 20em 0em 20em;
+                margin: 0em 20em 0em 18em;
             }
             
             #response {
-                font-size: 1.3rem;
+                font-size: 1.5rem;
                 font-weight: bold;
             }
 
@@ -31,15 +36,17 @@
             }
 
             textarea {
-                font-size: 1.3rem;
+                font-size: 1.5rem;
             }
 
             .arxiv-title {
                 text-decoration: underline;
+                list-style-type: circle;
             }
 
             .arxiv-authors {
                 font-style: italic;
+                list-style-type: circle;
             }
 
             .item {
@@ -49,15 +56,23 @@
             ul {
                 padding-inline-start: 20px;
             }
+
+            #updateButton {
+                margin-top: 10px;
+                margin-right: 10px;
+            }
         </style>
     </head>
     <body>
-        <div class="row">
-            <div class="col input_col">
-                <textarea id="content" class="is-center" autofocus></textarea>
+        <div class="col input_col">
+            <div class="row">
+                <input id="content" placeholder='Query' autofocus>
+            </div>
+            <div class="row is-right">
+                <a href="#" id="updateButton">Update index</a>
             </div>
         </div>
-        <div class="row">
+        <div class="is-horizontal-align">
             <div class="col-6 response_col">
                 <ol id="response">
                 </ol>
@@ -125,6 +140,17 @@
                     $("#response").append(li);
                 });
             });
+
+            document.getElementById("updateButton").onclick = function() {
+                fetch('http://localhost:5000/update', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch((error) => {
+                  console.error('Error:', error);
+                });
+            };
         </script>
     </body>
 </html>

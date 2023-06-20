@@ -51,32 +51,39 @@ class Line:
         return prefix + self.contents + recurse
 
 
-def build_hierarchy(raw_text: str) -> Line:
+def build_hierarchy(raw_text: str, verbose=False) -> Line:
     parsed_data = Line.make_root()
 
     curr_pointer = parsed_data
 
     for line_idx, line in enumerate(raw_text.split('\n')):
-        print('--')
+        if verbose:
+            print('--')
         
         if len(line.strip()) == 0:
-            print(color('SKIP EMPTY LINE', 'red'))
+            if verbose:
+                print(color('SKIP EMPTY LINE', 'red'))
+
             continue
 
         num_leading = sum(1 for _ in itertools.takewhile(lambda ch: ch == INDENT_CHAR, line))
         
-        print(color('num_leading: %d, curr: %d' % (num_leading, curr_pointer.level), 'blue'))
-        print(line)
+        if verbose:
+            print(color('num_leading: %d, curr: %d' % (num_leading, curr_pointer.level), 'blue'))
+            print(line)
         
         if num_leading > curr_pointer.level:
             # keep making nested lists until we reach (our target level - 1)
             while (num_leading - 1) > curr_pointer.level:
-                print(color('PAD UP ONE', 'green'))
+                if verbose:
+                    print(color('PAD UP ONE', 'green'))
+                
                 curr_pointer = curr_pointer.add_child(Line.EMPTY, None)
             
-            print(color('GO UP ONE', 'green'))
-            print(color('adding child at level: %d' % (curr_pointer.level + 1), 'blue'))
-            
+            if verbose:
+                print(color('GO UP ONE', 'green'))
+                print(color('adding child at level: %d' % (curr_pointer.level + 1), 'blue'))
+                
             assert (curr_pointer.level + 1) == num_leading
             
             curr_pointer = curr_pointer.add_child(line.strip(), line_idx)
@@ -85,12 +92,16 @@ def build_hierarchy(raw_text: str) -> Line:
         
         if num_leading < curr_pointer.level:
             for _ in range(curr_pointer.level - num_leading):
-                print(color('GO DOWN ONE', 'green'))
+                if verbose:
+                    print(color('GO DOWN ONE', 'green'))
+                
                 curr_pointer = curr_pointer.parent
         
         assert num_leading == curr_pointer.level
         
-        print(color('adding sibling at level: %d' % curr_pointer.level, 'blue'))
+        if verbose:
+            print(color('adding sibling at level: %d' % curr_pointer.level, 'blue'))
+        
         curr_pointer = curr_pointer.add_sibling(line.strip(), line_idx)
     
     return parsed_data
