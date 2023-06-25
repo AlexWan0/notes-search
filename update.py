@@ -6,7 +6,7 @@ import shutil
 
 from schema import create_whoosh
 from notes_parse import build_hierarchy
-from arxiv_api import ArxivBot
+from arxiv_api import get_cached_bot, CACHE_FN
 from utils import make_line_map, get_url
 from config import papers_path
 
@@ -32,10 +32,7 @@ def run_update(verbose=False):
 
 
     # init arxiv bot
-    arxiv_bot = ArxivBot()
-
-    if os.path.isfile('data/arxiv_cache.json'):
-        arxiv_bot.load_cache('data/arxiv_cache.json')
+    arxiv_bot = get_cached_bot()
 
 
     # build index
@@ -62,7 +59,7 @@ def run_update(verbose=False):
 
     writer.commit()
 
-    arxiv_bot.dump_cache('data/arxiv_cache.json')
+    arxiv_bot.dump_cache(CACHE_FN)
 
     ix.close()
 

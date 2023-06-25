@@ -3,6 +3,19 @@ import requests
 import re
 import json
 
+
+CACHE_FN = 'data/arxiv_cache.json'
+
+
+def get_cached_bot(cache_fn=CACHE_FN):
+    bot = ArxivBot()
+
+    if os.path.isfile(cache_fn):
+        bot.load_cache(cache_fn)
+
+    return bot
+
+
 def get_paper_info(paper_id):
     # by chatgpt
 
@@ -26,7 +39,7 @@ def get_paper_info(paper_id):
     else:
         return None
 
-arxiv_id_abs = r'((pdf)|(abs))\/(\d{4}\.\d{5})'
+arxiv_id_abs = r'((pdf)|(abs))\/(\d{4}\.\d{5})\/?(\.pdf)?\/?'
 
 class ArxivBot:
     def __init__(self):

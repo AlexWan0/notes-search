@@ -2,6 +2,7 @@ import itertools
 from collections import namedtuple
 from colors import color
 from typing import TypeVar
+from arxiv_api import get_cached_bot
 
 
 INDENT_CHAR = '\t'
@@ -49,6 +50,11 @@ class Line:
         prefix = indent_char * self.level
         
         return prefix + self.contents + recurse
+
+
+get_cached_bot
+
+def add_arxiv_to_content(content)
 
 
 def build_hierarchy(raw_text: str, verbose=False) -> Line:
