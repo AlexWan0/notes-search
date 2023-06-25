@@ -6,9 +6,10 @@ import shutil
 
 from schema import create_whoosh
 from notes_parse import build_hierarchy
-from arxiv_api import get_cached_bot, CACHE_FN
+from arxiv_api import get_cached_bot
 from utils import make_line_map, get_url
 from config import papers_path
+
 
 def run_update(verbose=False):
     # init files
@@ -27,12 +28,27 @@ def run_update(verbose=False):
     with open('data/_papers.txt') as f_in:
         raw_text = f_in.read()
 
+
+    # init arxiv bot
+    arxiv_bot = get_cached_bot()
+
+
+    # parse notes
     print('UPDATE: Parsing notes...')
     parsed_data = build_hierarchy(raw_text, verbose=verbose)
 
 
-    # init arxiv bot
-    arxiv_bot = get_cached_bot()
+    # add arxiv link info to hierarchy
+    print('UPDATE: Adding link info')
+
+    def _recurse(node):
+        for child in node.children:
+            if not child.parent.is_root():
+                child.contents = arxiv_bot.replace_info(child.contents)
+
+            _recurse(child)
+
+    _recurse(parsed_data)
 
 
     # build index
@@ -59,7 +75,7 @@ def run_update(verbose=False):
 
     writer.commit()
 
-    arxiv_bot.dump_cache(CACHE_FN)
+    arxiv_bot.dump_cache()
 
     ix.close()
 
@@ -71,3 +87,7 @@ def run_update(verbose=False):
     # save data
     with open('data/line_map.pkl', 'wb') as f_out:
         pickle.dump(line_to_node, f_out)
+
+
+if __name__ == '__main__':
+    run_update(verbose=True)

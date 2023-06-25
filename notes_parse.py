@@ -51,10 +51,8 @@ class Line:
         
         return prefix + self.contents + recurse
 
-
-get_cached_bot
-
-def add_arxiv_to_content(content)
+    def is_root(self):
+        return (self.contents == self.ROOT)
 
 
 def build_hierarchy(raw_text: str, verbose=False) -> Line:

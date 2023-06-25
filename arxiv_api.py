@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import requests
 import re
 import json
+import os
 
 
 CACHE_FN = 'data/arxiv_cache.json'
@@ -57,28 +58,48 @@ class ArxivBot:
         with open(fn) as f_in:
             self.cache = json.load(f_in)
     
-    def dump_cache(self, fn):
+    def dump_cache(self, fn=CACHE_FN):
         with open(fn, 'w') as f_out:
             json.dump(self.cache, f_out)
     
-    def get_info(self, title_raw, delay=0.1):
+    def arxiv_info_cached(self, arxiv_id):
+        if arxiv_id in self.cache:
+            return self.cache[arxiv_id]
+
+        title, authors, abstract = get_paper_info(arxiv_id)
+
+        self.cache[arxiv_id] = (title, authors, abstract)
+
+        return (title, authors, abstract)
+
+    def get_info(self, title_raw):
         arxiv_id = self.get_arxiv_id(title_raw)
 
         if arxiv_id is None:
             return None, None, None
         
-        if arxiv_id in self.cache:
-            return self.cache[arxiv_id]
-        
-#         res = requests.get(abs_link, headers=simple_headers)
-#         time.sleep(delay)
-        
-#         html = bs4.BeautifulSoup(res.text)
+        return self.arxiv_info_cached(arxiv_id)
+    
+    def _get_arxiv_link_replacement(self, re_match):
+        arxiv_id = re_match.group(4)
 
-#         page_title = html.title.text.strip()
+        (title, authors, _) = self.arxiv_info_cached(arxiv_id)
 
-        title, authors, abstract = get_paper_info(arxiv_id)
+        full_matched = re_match.group()
 
-        self.cache[arxiv_id] = (title, authors, abstract)
-        
-        return (title, authors, abstract)
+        author_str = ', '.join(authors)
+
+        title = re.sub(r'\s+', ' ', title)
+
+        return f'{full_matched} [["{title}" by {author_str}]]'
+
+    def replace_info(self, text_raw):
+        regex = re.compile(arxiv_id_abs)
+
+        matches = regex.finditer(text_raw)
+
+        for match in matches:
+            replacement = self._get_arxiv_link_replacement(match)
+            text_raw = text_raw.replace(match.group(), replacement)
+
+        return text_raw
