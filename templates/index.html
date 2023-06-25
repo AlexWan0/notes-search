@@ -119,6 +119,13 @@
                 });
             }
 
+            function convertToItalic(text) {
+                var bracketRegex = /\[\[(.*?)\]\]/g;
+                return text.replace(bracketRegex, function(match, g1) {
+                    return '[[' + '<i>' + g1 + '</i>' + ']]';
+                });
+            }
+
             socket.on('response', function(msg) {
                 var data = JSON.parse(msg);
                 $("#response").empty();
@@ -133,6 +140,9 @@
                             } else if (index == 2) {
                                 li.append("<ul class='sub-item'><li class='arxiv-authors'>" + item + "</li></ul>");
                             } else if (index == 3) {
+                                item = convertToHyperlink(item);
+                                item = convertToItalic(item);
+
                                 li.append(parseTabList(item));
                             }
                         }
